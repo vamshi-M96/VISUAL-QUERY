@@ -1,6 +1,5 @@
-# 🧠 SQLFlow
+# 🧠VISUAL QUERY BUILDER
 
-**Visual SQL Builder for CSV Data**  
 Build SQL queries step-by-step — no code required.
 
 ---
