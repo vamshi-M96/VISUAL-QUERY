@@ -30,7 +30,7 @@ st.markdown(
 
     .wave-text span {
         display: inline-block;
-        animation: wave 1.8s ease-in-out infinite;
+        animation: wave 0.8s ease-in-out infinite;
     }
 
     .reflection {
