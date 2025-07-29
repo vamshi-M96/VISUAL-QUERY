@@ -83,6 +83,33 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+with st.expander("📘 How to Use Visual SQL Builder", expanded=False):
+    st.markdown("""
+    <div style='text-align: center; font-size: 20px;'>
+        🗂️ ➜ 📋 ➜ ⚙️ ➜ 🧾 ➜ 📊 ➜ 💾
+    </div>
+
+    <br>
+
+    🗂️ **Upload CSV**  
+    Load one or more data tables.
+
+    📋 **Pick Base Table**  
+    Choose the table to start building from.
+
+    ⚙️ **Add Steps**  
+    Filter, Join, Group By, and more.
+
+    🧾 **SQL View**  
+    Auto-generated SQL per step.
+
+    📊 **Preview Output**  
+    Instantly see step results.
+
+    💾 **Export**  
+    Download SQL or final CSV.
+    """, unsafe_allow_html=True)
+
 
 st.divider()
 
