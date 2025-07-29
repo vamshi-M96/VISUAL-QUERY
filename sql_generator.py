@@ -16,12 +16,30 @@ def generate_sql_query_for_step(step):
         order = "ASC" if step.get("ascending", True) else "DESC"
         return f"SELECT * FROM {table} ORDER BY {columns} {order}"
 
+   
     elif step["type"] == "Group By":
         table = step["table"]
         group_cols = ", ".join(step["group_cols"])
-        aggs = ", ".join([f"{func.upper()}({col}) AS {func}_{col}" for col, func in step["aggregations"].items()])
-        return f"SELECT {group_cols}, {aggs} FROM {table} GROUP BY {group_cols}"
+        aggregations = step["aggregations"]
+        having_conditions = step.get("having_conditions", [])
 
+        # SELECT aggregation parts
+        agg_select = ", ".join([f"{func.upper()}({col}) AS {func}_{col}" for col, func in aggregations.items()])
+
+        # HAVING clause
+        having_clause = ""
+        if having_conditions:
+            having_parts = [
+                f"{cond['function'].upper()}({cond['column']}) {cond['operator']} {cond['value']}"
+                for cond in having_conditions
+            ]
+            having_clause = " HAVING " + " AND ".join(having_parts)
+
+        return f"""
+        SELECT {group_cols}, {agg_select}
+        FROM {table}
+        GROUP BY {group_cols}{having_clause}
+        """.strip()
     elif step["type"] == "Join Tables":
         lt = step["left_table"]
         rt = step["right_table"]
