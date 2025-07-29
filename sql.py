@@ -83,6 +83,8 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+st.divider()
+
 with st.expander("📘 How to Use Visual SQL Builder", expanded=False):
     st.markdown("""
     <div style='text-align: center; font-size: 20px;'>
@@ -109,9 +111,6 @@ with st.expander("📘 How to Use Visual SQL Builder", expanded=False):
     💾 **Export**  
     Download SQL or final CSV.
     """, unsafe_allow_html=True)
-
-
-st.divider()
 
 # 1️⃣ Upload & Display Files
 upload_data()
