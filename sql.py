@@ -109,3 +109,51 @@ if has_data:
 
 
 
+
+st.markdown(
+    """
+    <style>
+    .vq-footer {
+        margin-top: 60px;
+        padding: 15px 0;
+        text-align: center;
+        font-size: 15px;
+        font-family: 'Segoe UI', sans-serif;
+        border-top: 1px solid #e1e4e8;
+        color: #4b5563;
+    }
+
+    .vq-footer .app-name {
+        font-weight: bold;
+        color: #3b82f6; /* Blue-500 */
+    }
+
+    .vq-footer .author {
+        font-weight: 600;
+        color: #10b981; /* Emerald-500 */
+    }
+
+    .vq-footer .tools {
+        font-weight: 500;
+        color: #f59e0b; /* Amber-500 */
+    }
+
+    .vq-footer a {
+        text-decoration: none;
+        color: #10b981;
+    }
+    </style>
+
+    <div class="vq-footer">
+        🧩 <span class="app-name">Visual Query Builder</span> by 
+        <span class="author"><a href="https://www.linkedin.com/in/meka-vamshi-/" target="_blank">Vamshi ⚡</a></span> | 
+        <span class="tools">Built with ❤️ using Streamlit 🌐 + ChatGPT 🤖</span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+
+
+
+
