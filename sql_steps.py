@@ -205,18 +205,21 @@ def build_step_form(step_count, step, dataframes,prefix="basic"):
                             index=list(dataframes.keys()).index(step.get("table", list(dataframes.keys())[0])),
                             key=f"{prefix}_group_table_{step_count}")
         
-        available_cols = dataframes[table].columns.tolist()
+        df = dataframes[table]
+        available_cols = df.columns.tolist()
+        
+        # Group by columns
         default_group_cols = [col for col in step.get("group_cols", []) if col in available_cols]
-
         group_cols = st.multiselect("Group by columns", available_cols,
                                     default=default_group_cols,
                                     key=f"{prefix}_group_cols_{step_count}")
-
-        numeric_cols = dataframes[table].select_dtypes(include='number').columns.tolist()
+        
+        # Aggregation selection
+        numeric_cols = df.select_dtypes(include='number').columns.tolist()
         selected_agg_cols = st.multiselect("Select numeric columns to aggregate", numeric_cols,
                                         default=[col for col in step.get("aggregations", {}).keys() if col in numeric_cols],
                                         key=f"{prefix}_agg_select_cols_{step_count}")
-
+        
         agg_dict = step.get("aggregations", {})
         updated_agg = {}
         st.markdown("### Aggregation Functions")
@@ -225,9 +228,34 @@ def build_step_form(step_count, step, dataframes,prefix="basic"):
                                 index=["sum", "mean", "count", "min", "max"].index(agg_dict.get(col, "sum")) if col in agg_dict else 0,
                                 key=f"{prefix}_agg_{step_count}_{col}")
             updated_agg[col] = func
-
-        step.update({"table": table, "group_cols": group_cols, "aggregations": updated_agg})
         
+        # HAVING clause
+        st.markdown("### 📌 HAVING Clause (Optional)")
+        having_conditions = step.get("having_conditions", [])
+        new_having_conditions = []
+        
+        for col in selected_agg_cols:
+            col_func = updated_agg[col]
+            use_having = st.checkbox(f"Apply HAVING on {col_func.upper()}({col})?", value=any(cond["column"] == col for cond in having_conditions),
+                                    key=f"{prefix}_having_check_{step_count}_{col}")
+            if use_having:
+                comp_op = st.selectbox(f"Operator for {col}", [">", ">=", "<", "<=", "=", "!="],
+                                    key=f"{prefix}_having_op_{step_count}_{col}")
+                value = st.number_input(f"Value for {col_func.upper()}({col})", key=f"{prefix}_having_val_{step_count}_{col}")
+                new_having_conditions.append({
+                    "column": col,
+                    "function": col_func,
+                    "operator": comp_op,
+                    "value": value
+                })
+        
+        # Update step
+        step.update({
+            "table": table,
+            "group_cols": group_cols,
+            "aggregations": updated_agg,
+            "having_conditions": new_having_conditions
+        })
 
     elif step_type == "Sort Rows":
         table = st.selectbox("Select Table", list(dataframes.keys()),
@@ -1054,9 +1082,39 @@ def apply_step(step, dataframes):
             df = dataframes[step["table"]]
             return df.query(step["expression"])
 
+        
         elif step["type"] == "Group By":
-            df = dataframes[step["table"]]
-            return df.groupby(step["group_cols"]).agg(step["aggregations"]).reset_index()
+            table = step["table"]
+            df = dataframes[table]
+            group_cols = step["group_cols"]
+            aggregations = step["aggregations"]
+
+            # Do groupby
+            grouped = df.groupby(group_cols).agg(aggregations).reset_index()
+
+            # Rename columns like SUM_width
+            grouped.columns = [
+                col if col in group_cols else f"{aggregations[col]}_{col}"
+                for col in grouped.columns
+            ]
+
+            # Apply HAVING
+            having_conditions = step.get("having_conditions", [])
+            if having_conditions:
+                try:
+                    # Build a compound query string
+                    queries = []
+                    for cond in having_conditions:
+                        agg_col = f"{cond['function']}_{cond['column']}"
+                        op = cond["operator"]
+                        val = cond["value"]
+                        queries.append(f"`{agg_col}` {op} {val}")
+                    query_str = " and ".join(queries)
+                    grouped = grouped.query(query_str)
+                except Exception as e:
+                    return pd.DataFrame({"Error": [f"Invalid HAVING clause: {e}"]})
+
+            return grouped
 
         elif step["type"] == "Sort Rows":
             df = dataframes[step["table"]]
